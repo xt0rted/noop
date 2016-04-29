@@ -1,2 +1,2 @@
 # noop
-A test repository
+A test repository.
