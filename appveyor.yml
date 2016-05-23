@@ -1,0 +1,43 @@
+branches:
+  only:
+    - master
+
+version: '{build}'
+
+assembly_info:
+  patch: true
+  file: SharedAssemblyInfo.cs
+  assembly_version: $(build_version)
+  assembly_file_version: $(build_version)
+  assembly_informational_version: $(release_version)
+
+configuration: Release
+
+install:
+  - ps: |
+      $buildNumber = [int]$env:APPVEYOR_BUILD_NUMBER
+      $regex = [regex]'\[assembly: AssemblyInformationalVersion\(\"(?<version>.*?)\"\)\]'
+      $assemblyInfo = Get-Content .\SharedAssemblyInfo.cs
+
+      $env:BUILD_VERSION = $regex.Match($assemblyInfo).Groups['version'].Value
+      "Build version $env:BUILD_VERSION"
+
+      $env:RELEASE_VERSION = $env:BUILD_VERSION
+
+      if ($env:APPVEYOR_REPO_TAG -ne 'true') {
+          $env:RELEASE_VERSION += "-build" + $buildNumber.ToString().PadLeft(5, '0')
+      }
+
+      "Release version $env:RELEASE_VERSION"
+
+before_build:
+  - ps: nuget restore
+
+build:
+  parallel: true
+
+notifications:
+  - provider: Slack
+    auth_token:
+      secure: z7yNA5gLaQjKIWhrDw2b2j1tYJIEFPRtlfdVGPpV2U52q4ZvMdBrKosEGG587FMhybm8UfhoQeNZUUju1ExOtQ==
+    channel: '#noop'
