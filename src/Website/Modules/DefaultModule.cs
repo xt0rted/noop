@@ -5,7 +5,7 @@
     {
         public DefaultModule()
         {
-            Get["/"] = _ => "hello";
+            Get["/"] = _ => View["index"];
         }
     }
 }
